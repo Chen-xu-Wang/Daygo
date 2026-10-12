@@ -373,3 +373,6 @@ fake 能证明确定性逻辑，不能证明 LLM 文本一致、真实截图或�
 - **2026-10-12（`test`）饼图阴影修正**：上一条中扇区的 CSS `filter: drop-shadow()` 在 macOS WKWebView 中不绘制
   （WebKit 对 SVG 子元素的 CSS 滤镜支持不可靠），用户报告饼图无阴影；底盘、扇区与中心圆盘的阴影改为 SVG
   `<filter>`（扇区组用 feGaussianBlur + feOffset 取自身颜色作同色阴影）。前端 typecheck、build 通过，外观由用户人工检查。
+- **2026-10-12（`test`）饼图玻璃透光**：扇区 `fill-opacity` 0.88（悬停扇区为 1），环带叠一层左上起渐隐的白色高光
+  （screen 混合，只提亮不改色）与外缘细反光线（顶部 0.38、40% 处淡出，按用户反馈由 0.85 / 65% 调淡）；深色主题减半。
+  前端 typecheck、build 通过，外观由用户人工检查。

@@ -15,7 +15,7 @@ import PlanPanel from './PlanPanel.vue'
 import type { ReviewTotals } from './review'
 import { FALLBACK_CATEGORY_COLOR, safeCategoryColor } from './layout'
 import { failurePresentation } from './failurePresentation'
-import { buildDonutSectors, type DonutSector, type DonutSlice } from './donut'
+import { buildDonutSectors, fullRingPath, type DonutSector, type DonutSlice } from './donut'
 
 /*
  * The inspector's no-selection pane, laid out like the Dayflow reference:
@@ -177,6 +177,10 @@ const donutSectors = computed<DonutSector[]>(() =>
   buildDonutSectors(donutSlices.value),
 )
 
+// The ring band (outer 102.5, inner 0.75 of it, as the sectors) that the glass
+// sheen paints over, so the light never spills into the hole.
+const GLASS_RING = fullRingPath(102.5, 102.5, 102.5, 76.875)
+
 
 // Sectors and legend chips share the donutSlices order 1:1 (every slice has
 // positive minutes), so a single hovered index links the two: the matching
@@ -247,6 +251,17 @@ const reviewMinutesTotal = computed(() =>
         <filter id="donut-disk-shadow" x="-20%" y="-20%" width="140%" height="140%">
           <feDropShadow class="donut-flood--disk" dx="0" dy="1" stdDeviation="2" />
         </filter>
+        <!-- Glass light: a sheen pooled at the upper left fading out across
+             the ring, and a rim light bright on top, gone at the bottom. -->
+        <linearGradient id="donut-glass-sheen" x1="0.15" y1="0" x2="0.75" y2="1">
+          <stop class="donut-glass--in" offset="0%" />
+          <stop class="donut-glass--mid" offset="38%" />
+          <stop class="donut-glass--out" offset="72%" />
+        </linearGradient>
+        <linearGradient id="donut-glass-rim" x1="0" y1="0" x2="0" y2="1">
+          <stop class="donut-rim--top" offset="0%" />
+          <stop class="donut-rim--bottom" offset="40%" />
+        </linearGradient>
         <!-- Soft contact shadow hugging the inner edge of the ring. -->
         <radialGradient id="donut-inner-shade" cx="50%" cy="50%" r="50%">
           <stop offset="70%" stop-color="rgba(20, 22, 40, 0)" />
@@ -276,6 +291,9 @@ const reviewMinutesTotal = computed(() =>
           @mouseleave="activeSlice = null"
         />
       </g>
+      <!-- Glass light over the ring band: sheen, then the outer rim light. -->
+      <path class="donut__glass" :d="GLASS_RING" fill="url(#donut-glass-sheen)" />
+      <circle class="donut__rim" cx="102.5" cy="102.5" r="101.6" fill="none" stroke="url(#donut-glass-rim)" stroke-width="0.8" />
       <!-- Contact shadow at the hole, then the raised white center disk. -->
       <circle cx="102.5" cy="102.5" r="102.5" fill="url(#donut-inner-shade)" />
       <circle class="donut__center-disk" cx="102.5" cy="102.5" r="73" filter="url(#donut-disk-shadow)" />
@@ -473,18 +491,22 @@ const reviewMinutesTotal = computed(() =>
 :root[data-dg-appearance='dark'] .donut-flood--disk { flood-color: #000000; flood-opacity: 0.45; }
 
 .donut__sector {
-  /* Flat colour; the group's SVG filter adds a shadow in each wedge's hue. */
+  /* Slightly translucent so the base glows through, glass-like; the group's
+     SVG filter adds a shadow in each wedge's hue. */
+  fill-opacity: 0.88;
   /* Pin the hover scale to the ring centre. Without an explicit box WebKit
      pivots around each wedge's own bounding box, so the active sector drifts
      off the ring instead of lifting in place. */
   transform-box: view-box;
   transform-origin: 102.5px 102.5px;
   transition:
+    fill-opacity var(--dg-motion-base) var(--dg-ease-out),
     opacity var(--dg-motion-base) var(--dg-ease-out),
     transform var(--dg-motion-base) var(--dg-ease-glide);
 }
 
 .donut__sector.is-active {
+  fill-opacity: 1;
   transform: scale(1.035);
 }
 
@@ -497,6 +519,25 @@ const reviewMinutesTotal = computed(() =>
 .donut-stop--rim { stop-color: rgba(20, 22, 40, 0.16); }
 
 :root[data-dg-appearance='dark'] .donut-stop--rim { stop-color: rgba(0, 0, 0, 0.34); }
+
+/* Glass light: screen only brightens, so every hue keeps its colour. Neither
+   layer may take the pointer from the wedges beneath. */
+.donut__glass,
+.donut__rim {
+  pointer-events: none;
+}
+
+.donut__glass { mix-blend-mode: screen; }
+
+.donut-glass--in { stop-color: #ffffff; stop-opacity: 0.42; }
+.donut-glass--mid { stop-color: #ffffff; stop-opacity: 0.12; }
+.donut-glass--out { stop-color: #ffffff; stop-opacity: 0; }
+.donut-rim--top { stop-color: #ffffff; stop-opacity: 0.38; }
+.donut-rim--bottom { stop-color: #ffffff; stop-opacity: 0; }
+
+:root[data-dg-appearance='dark'] .donut-glass--in { stop-opacity: 0.22; }
+:root[data-dg-appearance='dark'] .donut-glass--mid { stop-opacity: 0.06; }
+:root[data-dg-appearance='dark'] .donut-rim--top { stop-opacity: 0.18; }
 
 .donut__center-disk {
   fill: var(--dg-surface, #ffffff);
