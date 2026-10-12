@@ -191,3 +191,9 @@ between publishing a formal Release and uploading the appcast. After promoting a
 workflow with its tag and check that the appcast exists. Existing installers are reused by the prepare job.
 For an existing published Release whose original event was skipped or missed, use the workflow's manual dispatch with
 its `tag` input. The prepare job checks the live Release state before building.
+
+## macOS 时间线小组件开发
+
+原生 WidgetKit 扩展的匿名检查、universal 编译、浅 / 深色布局预览和显式开发签名嵌入入口，
+见 [Widget 开发说明](../native/darwin/Widget/README.md)。这些入口不接入 release 工作流；
+没有开发团队可以编译和验证契约，真实系统添加 / 共享容器与签名安装仍须单独验收。

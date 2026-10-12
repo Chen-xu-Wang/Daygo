@@ -1,0 +1,5 @@
+"timeline" = "Zeitleiste";
+"description" = "Die letzten Aktivitäten des heutigen Tages.";
+"empty" = "Heute noch keine Aktivitäten";
+"sync" = "Daygo öffnen, um die Zeitleiste abzugleichen";
+"updated" = "Aktualisiert";

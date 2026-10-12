@@ -392,3 +392,12 @@ G-host 通过。
 1352/512。`scripts/dev.ps1` 临时启用 `GOEXPERIMENT=nodwarf5` 后变为 1536/512，Windows loader
 可启动；Windows 无状态栏适配器时的 nil `System` 启动 panic 也已失败关闭。此记录只证明本机
 开发构建可启动，不构成签名、安装、升级或 Windows 发布证据。
+
+## macOS 时间线小组件开发接入
+
+2026-10-12：`native/darwin/Widget/build.sh` 编译 universal 开发扩展；`embed.sh` 显式接收
+开发 app / team ID / identity，保存宿主 entitlements，核对扩展签名 team，按内到外签名。
+此入口不接入 release 工作流、不生成安装器、不修改既有 Bundle ID。
+当前贡献者没有团队，仅完成匿名编译与契约验证；脚本真实签名 / 注册 / 升级未运行。
+G-native 状态不提升。范围、验收、移除扩展后的签名恢复见
+[timeline 小组件决策](../decisions/timeline-macos-widget.md)。

@@ -104,6 +104,7 @@ func Run() error {
 		backend.attachMedia(recordingsRoot)
 		defer func() { _ = store.Close() }()
 		defer backend.stopTimelineTasks()
+		defer backend.startWidgetPublisher(ctx)()
 
 		// Maintenance is owned by this context, so cancelling it at shutdown
 		// stops the goroutine. There is no global scheduler to leak

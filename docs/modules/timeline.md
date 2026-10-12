@@ -376,3 +376,48 @@ fake 能证明确定性逻辑，不能证明 LLM 文本一致、真实截图或�
 - **2026-10-12（`test`）饼图玻璃透光**：扇区 `fill-opacity` 0.88（悬停扇区为 1），环带叠一层左上起渐隐的白色高光
   （screen 混合，只提亮不改色）与外缘细反光线（顶部 0.38、40% 处淡出，按用户反馈由 0.85 / 65% 调淡）；深色主题减半。
   前端 typecheck、build 通过，外观由用户人工检查。
+
+## macOS 桌面小组件贡献增量
+
+2026-10-12：新增 `internal/widget` 最小快照投影 / 有界发布循环、app 真实存储读取与
+可选 `platform.WidgetSnapshotSink`；macOS Swift 适配器原子写 App Group 快照并请求刷新。
+`native/darwin/Widget` 为 WidgetKit / SwiftUI 扩展，小 / 中 / 大展示最新 1 / 3 / 8 条，
+大号压缩成开始时间 + 标题行。九语言资源独立验证；空态与更新时间可见。
+
+只发布标题、时刻、分类色，不增加 DB writer / Provider 调用或导出屏幕数据。
+Go 使用存储时区的 4 点逻辑日，跨边界卡片夹紧；Swift 只消费有效期，不推算逻辑日。
+无签名 App Group 配置时不启动循环；Windows / Linux 继续不提供该可选端口。
+扩展源码与开发接入入口已落盘；真实系统添加 / 签名共享容器 / 刷新尚未验收，
+不纳入 09-26 历史确认。范围 / 失败条件 / 回退见
+[决策](../decisions/timeline-macos-widget.md)与 [05 §5.13](../05-interface-contract.md#513-macos-桌面时间线小组件)。
+
+### 小组件验证记录
+
+- 2026-10-12，基于本 fork `test` 工作树，macOS 15.7.7 arm64，Xcode 26.3 / SDK 26.2，
+  临时目录官方 SHA-256 校验 Go 1.27.2；无 Apple Developer 团队，不读取用户数据库或活动。
+  匿名夹具覆盖最新排序 / 上限 / 标题截断 / 敏感字段排除、4 点 / DST 与跨边界夹紧、
+  删除卡片、真实仓储所有权、发布去重 / 重试 / 取消，以及 Go/Swift 同一 v1 JSON。
+  初始 Go 命令因环境无 Go 未运行；初始 Swift 测试因 throwing autoclosure 编译失败，修复
+  夹具后重跑。所有权夹具最初改 backend fallback 字段不能改变真实锁，按实际 storage
+  writer / capture-owner 和只读连接重建夹具，生产条件未放宽。
+  `CGO_ENABLED=0 go test ./internal/widget ./internal/app -run 'TestSnapshot|TestPublisher|TestWidget' -count=1`
+  通过；`native/darwin/Widget/test.sh` 的 Swift 输入拒绝、九语言与 shell 语法检查通过；
+  `native/darwin/Widget/build.sh` 两架构编译 / universal 合并与 plist 检查通过。
+  `native/darwin/build.sh` 原生两架构静态库重建通过，既有 AVFoundation 告警保留；
+  `go test ./internal/platform/darwin -run '^$'` cgo 链接通过（不执行原生集成测试）。
+  系统小组件库添加、实际 App Group 访问、桌面刷新、签名安装升级 / TCC 身份、
+  九语言重启读回与真实 4 点观察未运行。回退不需数据迁移。
+
+- 同日最终检查：`./scripts/gate.sh` 通过（Go 内部测试 / vet / 无 cgo 构建、
+  三平台核心交叉构建、前端 267 项单测 / typecheck / build、文档 71 篇 0 问题）。
+  Windows 安装器 16 项中 4 项通过、12 项因缺 NSIS 跳过，未写为目标平台通过。
+  `go test -race ./internal/widget ./internal/app -run 'TestSnapshot|TestPublisher|TestWidget' -count=1`
+  通过，包含进行中读取的取消与退出；重建原生后
+  `go test -a ./internal/platform/darwin -run '^$'` 链接通过。
+  Swift 匿名文件夹具验证 0600 原子写入、替换与无残留临时文件。
+  `native/darwin/Widget/preview.sh` 用 ImageRenderer 渲染匿名三尺寸浅 / 深色布局；
+  初始中号两行活动挤出页头 / 页尾，改为紧凑单行后复核。
+  此预览不运行在 WidgetKit 系统宿主内，不证明系统尺寸、注册、刷新或字体缩放行为。
+  初次 offscreen NSHostingView 缓存未绘制文本，弃用该输出，改用 ImageRenderer。
+  最终 `gofmt -l .` 无输出、`git diff --check` 通过。
+  工作树基线 `bf49b34`；本增量统一在 `test` 提交，未产生 release 产物。

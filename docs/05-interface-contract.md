@@ -1945,3 +1945,33 @@ type ChatMessageDTO struct {
 | provider 路由 | **已定：会话级选择（必选）** | `chat_conversations.provider_id` 存用户显式选择；新会话默认路由链首位；不回退到链 |
 | 消息留存 | 无限期 vs 按天数 / 条数上限（仍待定） | 上限策略与 [07 §7.6](07-privacy-security.md#76-数据留存与删除) 的留存原则一并定 |
 | 审计来源标记 | `agent-writes.log` 中区分 UI / agent.sock / MCP / chat 来源（仍待定） | 与 §5.9.3 的候选共通，一并定 |
+
+## 5.13 macOS 桌面时间线小组件
+
+新增可选 `platform.WidgetSnapshotSink`：`WidgetAvailable() bool` 与
+`PublishWidgetSnapshot(context.Context, []byte) error`。不增加 Wails 绑定或数据库表。
+只有既有数据库写入者且捕获所有者启动发布，其他实例不覆盖快照。
+
+`timeline-widget-v1.json` 在 App Group 容器内，权限 0600、原子替换、上限 32 KiB。
+
+| 字段 | 类型 / 语义 |
+|---|---|
+| version | 整数，固定 1；未知版本拒绝 |
+| day | Go 按存储时区计算的 4 点逻辑日，yyyy-MM-dd |
+| language | 已解析的界面语言，九语言资源；未知值回退 en |
+| generatedAtTs | 发布时刻 Unix 秒，纯时间戳变化不触发发布 |
+| validUntilTs | Go 计算的下个 4 点 Unix 秒，过期不展示旧日卡片 |
+| cards | 非 null 数组，最多 8 条，startTs / ID 降序 |
+| cards[].id | 数据库卡片正整数 ID，仅作稳定展示标识 |
+| cards[].startTs / endTs | 夹紧到逻辑日窗口的 Unix 秒；合法卡跨度最多 4 小时 |
+| cards[].title | 最多 160 Unicode 字符，无 Markdown / 指令执行 |
+| cards[].colorHex | 分类颜色；原生仅接受 #RRGGBB，否则使用 accentColor |
+
+不包含摘要、媒体、应用站点、路径、密钥、诊断或 LLM payload。Swift 在解码前限制读取量，
+校验版本、条数、唯一 ID、有效时间和标题长度；失败只展示本地化同步提示。
+原生 C ABI `daygo_widget.h` 同步消费字节、不保留指针；0 成功，1 输入无效、2 容器不可用、
+3 写入失败。日志不输出快照、路径或原始系统错误。
+
+Go 每 30 秒查询，成功发布后缓存可见字段，失败在下次重试；关窗继续，宿主结束时取消并
+等待退出再关库。扩展请求 15 分钟刷新，并预排有效期边界空态；系统调度不保证即时刷新。
+共享容器、身份与验收见 [决策](decisions/timeline-macos-widget.md)。

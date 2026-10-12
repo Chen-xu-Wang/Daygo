@@ -242,6 +242,15 @@ HEVC 分段、`platform.Media`、帧资源处理器和按段清理已经落盘�
 更早期的编译 / 链接探针（[验证门禁](decisions/recording-screen-capture.md#8-验证门禁)）
 只证明当时能编译链接，临时源码未入库，不记为真实集成通过。
 
+### 9.1.2 macOS 时间线小组件贡献增量
+
+2026-10-12：timeline 新增 WidgetKit / SwiftUI 小中大三尺寸扩展、Go 最小快照投影与
+可选 App Group 发布端口；delivery 提供独立开发编译 / 嵌入入口。
+无团队的既有构建不启动发布、不改变 release 工作流。
+实现已落盘，G-core 与匿名双侧契约证据见 [timeline 执行册](modules/timeline.md)；
+真实小组件库添加、签名共享容器、桌面刷新与安装升级 **未验收**，不纳入历史用户确认。
+方案和回退见 [决策记录](decisions/timeline-macos-widget.md)。
+
 ## 9.2 执行与状态规则
 
 2026-09-26 宿主控制增量：macOS 菜单栏不可用时保留 Dock 恢复入口、激活策略确认 / 重试、
