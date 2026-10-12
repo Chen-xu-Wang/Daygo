@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import DgSelect, { type DgSelectOption } from '@/components/DgSelect.vue'
 import { useTokenUsage } from '@/stores/tokenUsage'
 import { tokenUsageFormatter, tokenUsageHoverIndex, tokenUsagePoints, tokenUsageTotals } from '@/lib/tokenUsageChart'
 
@@ -11,7 +12,13 @@ import WeeklyChartTooltip from '@/views/Weekly/charts/WeeklyChartTooltip.vue'
 const props = defineProps<{ period: 'day' | 'week'; day: string }>()
 const { t, locale } = useI18n()
 const { usage, state, reload } = useTokenUsage(props.period, toRef(props, 'day'))
-const kind = ref<'line' | 'bar' | 'pie'>('line')
+type ChartKind = 'line' | 'bar' | 'pie'
+const kind = ref<ChartKind>('line')
+const kindOptions = computed<DgSelectOption<ChartKind>[]>(() => [
+  { value: 'line', label: t('tokenUsage.line') },
+  { value: 'bar', label: t('tokenUsage.bar') },
+  { value: 'pie', label: t('tokenUsage.pie') },
+])
 const buckets = computed(() => usage.value?.buckets ?? [])
 const totals = computed(() => tokenUsageTotals(buckets.value))
 const input = computed(() => tokenUsagePoints(buckets.value, 'inputTokens'))
@@ -55,11 +62,7 @@ const pie = computed(() => {
   <section class="token-card">
     <header>
       <div><h2>{{ t('tokenUsage.title') }}</h2><p>{{ t('tokenUsage.scope') }}</p></div>
-      <select v-model="kind" :aria-label="t('tokenUsage.chartType')">
-        <option value="line">{{ t('tokenUsage.line') }}</option>
-        <option value="bar">{{ t('tokenUsage.bar') }}</option>
-        <option value="pie">{{ t('tokenUsage.pie') }}</option>
-      </select>
+      <DgSelect v-model="kind" class="kind-select" size="sm" :options="kindOptions" :aria-label="t('tokenUsage.chartType')" />
     </header>
     <p v-if="state === 'loading' && !usage">{{ t('tokenUsage.loading') }}</p>
     <div v-else-if="state === 'failed'"><p>{{ t('tokenUsage.failed') }}</p><button @click="reload">{{ t('common.action.retry') }}</button></div>
@@ -125,7 +128,7 @@ const pie = computed(() => {
 header { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
 h2 { font-family: var(--dg-font-serif); font-size: 23px; font-weight: 400; }
 p { color: var(--dg-text-muted); font-size: 12px; line-height: 1.6; margin-top: 8px; }
-select { max-width: 150px; padding: 6px 10px; background: var(--dg-wk-card-fill); color: var(--dg-text-primary); border: 1px solid var(--dg-wk-divider); border-radius: 8px; }
+.kind-select { flex: none; width: 132px; }
 .totals { display: flex; flex-wrap: wrap; align-items: baseline; gap: 18px; margin-top: 24px; font-size: 12px; }
 .totals strong { font-size: 30px; font-weight: 500; }
 .input { color: var(--dg-accent-text); } .output { color: #6b8e9a; }
