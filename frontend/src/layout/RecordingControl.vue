@@ -90,7 +90,7 @@ function onDismiss(): void {
 
     <div v-if="menuOpen" class="pause-menu__backdrop" @click="closeMenu" />
     <Transition name="pause-menu">
-      <div v-if="menuOpen" class="pause-menu" role="menu" :aria-label="t('recording.menuBar.pauseMenu')">
+      <div v-if="menuOpen" class="pause-menu dg-popover" role="menu" :aria-label="t('recording.menuBar.pauseMenu')">
         <button
           v-for="opt in PAUSE_OPTIONS"
           :key="opt.minutes"
@@ -198,8 +198,11 @@ function onDismiss(): void {
   min-width: 148px;
   padding: 6px;
   border-radius: 12px;
-  background: var(--dg-surface-raised, #1e1e22);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
+  /* Surface, border and shadow come from .dg-popover, defined for both
+     appearances (the old --dg-surface-raised was never defined, so the menu
+     fell back to near-black and its dark light-mode text vanished). The
+     Transition below owns the entrance, so the popover's own is off. */
+  animation: none;
 }
 
 .pause-menu__item {
@@ -215,7 +218,7 @@ function onDismiss(): void {
   transition: background var(--dg-motion-base) ease;
 }
 
-.pause-menu__item:hover { background: var(--dg-surface-sunken, rgba(255, 255, 255, 0.08)); }
+.pause-menu__item:hover { background: var(--dg-hover-fill); }
 
 .pause-menu-enter-active,
 .pause-menu-leave-active { transition: opacity var(--dg-motion-base) ease, transform var(--dg-motion-base) ease; }
@@ -243,9 +246,10 @@ function onDismiss(): void {
   width: min(420px, calc(100vw - 48px));
   padding: 24px;
   border-radius: 14px;
-  background: var(--dg-surface-raised, #1e1e22);
+  border: 1px solid var(--lg-border-dense);
+  background: var(--dg-surface);
   color: var(--dg-text-primary);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--lg-shadow-dense);
   text-align: left;
 }
 
@@ -289,7 +293,7 @@ function onDismiss(): void {
 .recording-permission__btn:hover { opacity: 0.85; }
 
 .recording-permission__btn.is-secondary {
-  background: var(--dg-surface-sunken, rgba(255, 255, 255, 0.08));
+  background: var(--dg-hover-fill);
   color: var(--dg-text-primary);
 }
 

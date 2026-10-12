@@ -292,3 +292,6 @@ G-host/G-native 失败限制原生接入与大规模 UI；核心状态机、fixt
 - **2026-10-12（`test`）Windows 应用图标**：改由 `IShellItemImageFactory::GetImage` 按 96px 直接取
   （原 `SHGetFileInfoW` + `SHGFI_LARGEICON` 只得到 32px 再拉伸到 64px，隐私列表中发糊），失败时回退旧路径；
   **未编译、未在 Windows 主机验证**（本机无 MSVC），交叉编译与 macOS 门禁不覆盖该 DLL。
+- **2026-10-12（`test`）暂停菜单与权限弹窗配色**：两处引用了未定义的 `--dg-surface-raised` / `--dg-surface-sunken`，
+  浅色主题下落到近黑后备色而文字为深色；现改用 `.dg-popover` / `--dg-surface` / `--dg-hover-fill`。前端 typecheck、
+  build 通过，外观由用户人工检查。
