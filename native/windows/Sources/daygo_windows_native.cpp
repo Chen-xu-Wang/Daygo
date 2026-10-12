@@ -268,7 +268,73 @@ std::wstring file_display_name(const std::wstring& path) {
   return path.substr(start, end - start);
 }
 
-std::vector<uint8_t> application_icon_png(const std::wstring& path) {
+// Encodes a WIC bitmap as PNG, refusing anything over kMaximumIconBytes. The
+// frame is BGRA; WriteSource converts other formats (e.g. premultiplied).
+std::vector<uint8_t> encode_icon_png(IWICImagingFactory* factory, IWICBitmapSource* source) {
+  UINT width = 0;
+  UINT height = 0;
+  if (FAILED(source->GetSize(&width, &height)) || width == 0 || height == 0) return {};
+  winrt::com_ptr<IStream> stream;
+  winrt::com_ptr<IWICBitmapEncoder> encoder;
+  winrt::com_ptr<IWICBitmapFrameEncode> frame;
+  HGLOBAL memory = GlobalAlloc(GMEM_MOVEABLE, 0);
+  HRESULT hr = memory ? CreateStreamOnHGlobal(memory, TRUE, stream.put()) : E_OUTOFMEMORY;
+  if (FAILED(hr) && memory) GlobalFree(memory);
+  if (SUCCEEDED(hr)) hr = factory->CreateEncoder(GUID_ContainerFormatPng, nullptr, encoder.put());
+  if (SUCCEEDED(hr)) hr = encoder->Initialize(stream.get(), WICBitmapEncoderNoCache);
+  if (SUCCEEDED(hr)) hr = encoder->CreateNewFrame(frame.put(), nullptr);
+  if (SUCCEEDED(hr)) hr = frame->Initialize(nullptr);
+  if (SUCCEEDED(hr)) hr = frame->SetSize(width, height);
+  WICPixelFormatGUID format = GUID_WICPixelFormat32bppBGRA;
+  if (SUCCEEDED(hr)) hr = frame->SetPixelFormat(&format);
+  if (SUCCEEDED(hr)) hr = frame->WriteSource(source, nullptr);
+  if (SUCCEEDED(hr)) hr = frame->Commit();
+  if (SUCCEEDED(hr)) hr = encoder->Commit();
+  std::vector<uint8_t> png;
+  if (SUCCEEDED(hr)) {
+    STATSTG stat{};
+    if (SUCCEEDED(stream->Stat(&stat, STATFLAG_NONAME)) &&
+        stat.cbSize.QuadPart > 0 && stat.cbSize.QuadPart <= kMaximumIconBytes) {
+      LARGE_INTEGER zero{};
+      stream->Seek(zero, STREAM_SEEK_SET, nullptr);
+      png.resize(static_cast<size_t>(stat.cbSize.QuadPart));
+      ULONG read = 0;
+      if (FAILED(stream->Read(png.data(), static_cast<ULONG>(png.size()), &read)) ||
+          read != png.size()) {
+        png.clear();
+      }
+    }
+  }
+  return png;
+}
+
+// The icon is drawn at 96px: the privacy grid shows it at 44 CSS px, which
+// is 88 physical px at 200% scaling.
+constexpr UINT kIconSide = 96;
+
+// Asks the shell for the executable's icon at kIconSide. The shell picks the
+// closest image in the icon resource (usually a larger one, scaled down), so
+// it stays sharp; the old SHGFI_LARGEICON path only ever got the 32px image
+// and stretched it, which is what made the icons blurry.
+std::vector<uint8_t> shell_icon_png(IWICImagingFactory* factory, const std::wstring& path) {
+  winrt::com_ptr<IShellItemImageFactory> images;
+  if (FAILED(SHCreateItemFromParsingName(path.c_str(), nullptr, IID_PPV_ARGS(images.put())))) return {};
+  HBITMAP bitmap = nullptr;
+  const SIZE size{static_cast<LONG>(kIconSide), static_cast<LONG>(kIconSide)};
+  if (FAILED(images->GetImage(size, SIIGBF_ICONONLY, &bitmap)) || !bitmap) return {};
+  // The shell returns 32bpp premultiplied alpha.
+  winrt::com_ptr<IWICBitmap> source;
+  std::vector<uint8_t> png;
+  if (SUCCEEDED(factory->CreateBitmapFromHBITMAP(bitmap, nullptr, WICBitmapUsePremultipliedAlpha, source.put()))) {
+    png = encode_icon_png(factory, source.get());
+  }
+  DeleteObject(bitmap);
+  return png;
+}
+
+// Fallback for executables the shell item path cannot render: the large
+// system icon drawn into a kIconSide bitmap.
+std::vector<uint8_t> file_info_icon_png(IWICImagingFactory* factory, const std::wstring& path) {
   SHFILEINFOW info{};
   if (!SHGetFileInfoW(path.c_str(), FILE_ATTRIBUTE_NORMAL, &info, sizeof(info),
                       SHGFI_ICON | SHGFI_LARGEICON)) {
@@ -276,7 +342,7 @@ std::vector<uint8_t> application_icon_png(const std::wstring& path) {
   }
   HICON icon = info.hIcon;
   if (!icon) return {};
-  constexpr UINT side = 64;
+  constexpr UINT side = kIconSide;
   BITMAPINFO bitmap_info{};
   bitmap_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
   bitmap_info.bmiHeader.biWidth = side;
@@ -296,49 +362,29 @@ std::vector<uint8_t> application_icon_png(const std::wstring& path) {
   memset(bits, 0, side * side * 4);
   HGDIOBJ old = SelectObject(dc, bitmap);
   const BOOL drawn = DrawIconEx(dc, 0, 0, icon, side, side, 0, nullptr, DI_NORMAL);
-
   std::vector<uint8_t> png;
   if (drawn) {
-    winrt::com_ptr<IWICImagingFactory> factory;
-    winrt::com_ptr<IStream> stream;
-    winrt::com_ptr<IWICBitmapEncoder> encoder;
-    winrt::com_ptr<IWICBitmapFrameEncode> frame;
     winrt::com_ptr<IWICBitmap> source;
-    HGLOBAL memory = GlobalAlloc(GMEM_MOVEABLE, 0);
-    HRESULT hr = memory ? CreateStreamOnHGlobal(memory, TRUE, stream.put()) : E_OUTOFMEMORY;
-    if (SUCCEEDED(hr)) hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(factory.put()));
-    if (SUCCEEDED(hr)) hr = factory->CreateEncoder(GUID_ContainerFormatPng, nullptr, encoder.put());
-    if (SUCCEEDED(hr)) hr = encoder->Initialize(stream.get(), WICBitmapEncoderNoCache);
-    if (SUCCEEDED(hr)) hr = encoder->CreateNewFrame(frame.put(), nullptr);
-    if (SUCCEEDED(hr)) hr = frame->Initialize(nullptr);
-    if (SUCCEEDED(hr)) hr = frame->SetSize(side, side);
-    WICPixelFormatGUID format = GUID_WICPixelFormat32bppBGRA;
-    if (SUCCEEDED(hr)) hr = frame->SetPixelFormat(&format);
-    if (SUCCEEDED(hr)) hr = factory->CreateBitmapFromMemory(
-        side, side, GUID_WICPixelFormat32bppBGRA, side * 4, side * side * 4,
-        static_cast<BYTE*>(bits), source.put());
-    if (SUCCEEDED(hr)) hr = frame->WriteSource(source.get(), nullptr);
-    if (SUCCEEDED(hr)) hr = frame->Commit();
-    if (SUCCEEDED(hr)) hr = encoder->Commit();
-    if (SUCCEEDED(hr)) {
-      STATSTG stat{};
-      if (SUCCEEDED(stream->Stat(&stat, STATFLAG_NONAME)) &&
-          stat.cbSize.QuadPart > 0 && stat.cbSize.QuadPart <= kMaximumIconBytes) {
-        LARGE_INTEGER zero{};
-        stream->Seek(zero, STREAM_SEEK_SET, nullptr);
-        png.resize(static_cast<size_t>(stat.cbSize.QuadPart));
-        ULONG read = 0;
-        if (FAILED(stream->Read(png.data(), static_cast<ULONG>(png.size()), &read)) ||
-            read != png.size()) {
-          png.clear();
-        }
-      }
+    if (SUCCEEDED(factory->CreateBitmapFromMemory(
+            side, side, GUID_WICPixelFormat32bppBGRA, side * 4, side * side * 4,
+            static_cast<BYTE*>(bits), source.put()))) {
+      png = encode_icon_png(factory, source.get());
     }
   }
   SelectObject(dc, old);
   DeleteObject(bitmap);
   DeleteDC(dc);
   DestroyIcon(icon);
+  return png;
+}
+
+std::vector<uint8_t> application_icon_png(const std::wstring& path) {
+  winrt::com_ptr<IWICImagingFactory> factory;
+  if (FAILED(CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(factory.put())))) {
+    return {};
+  }
+  std::vector<uint8_t> png = shell_icon_png(factory.get(), path);
+  if (png.empty()) png = file_info_icon_png(factory.get(), path);
   return png;
 }
 

@@ -289,3 +289,6 @@ G-host/G-native 失败限制原生接入与大规模 UI；核心状态机、fixt
 - **macOS（2026-09-10—17）**：Capture fake 契约、Swift 通用静态库构建、真实单次像素 smoke、HEVC 段追加 / 解码 / 滚动 smoke、迁移夹具及 `./scripts/gate.sh` 通过。Go recorder 的暂停、失败容错和 pending 恢复有单元测试。
 - **Windows（2026-09-11—20）**：Windows 11 双屏机器上完成原生与 Go cgo 的非黑 JPEG smoke；`LockFileEx`、设置页应用选择和通知区完成有限验证。Media Foundation 分段与系统事件已有代码和 Go 测试；完整矩阵由用户于 2026-09-22 确认验收，未附逐项运行记录。
 - **用户闭环**：隐私、授权、G-host 和长期观察由用户于 2026-09-22 确认验收，未附逐项运行记录。未实现的空闲采样与 Linux Capture / System 不在本次验收范围；边界见 [09 §9.1](../09-roadmap.md#91-模块总表)。
+- **2026-10-12（`test`）Windows 应用图标**：改由 `IShellItemImageFactory::GetImage` 按 96px 直接取
+  （原 `SHGetFileInfoW` + `SHGFI_LARGEICON` 只得到 32px 再拉伸到 64px，隐私列表中发糊），失败时回退旧路径；
+  **未编译、未在 Windows 主机验证**（本机无 MSVC），交叉编译与 macOS 门禁不覆盖该 DLL。
