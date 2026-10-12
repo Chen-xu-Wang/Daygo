@@ -2,10 +2,10 @@ export default {
   title: '설정',
   nav: {
     general: '일반 및 모양',
-    recording: '개인정보 보호',
+    recording: '개인정보 보호 및 보안',
     providers: 'AI 서비스',
     storage: '기록 저장 공간',
-    privacy: '개인정보 보호',
+    privacy: '개인정보 보호 및 보안',
     agentAccess: 'MCP / CLI',
     dataExport: '내보내기',
     other: '기타',

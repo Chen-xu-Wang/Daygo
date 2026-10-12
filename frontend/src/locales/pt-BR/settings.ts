@@ -2,10 +2,10 @@ export default {
   title: 'Configurações',
   nav: {
     general: 'Geral e aparência',
-    recording: 'Privacidade',
+    recording: 'Privacidade e segurança',
     providers: 'Serviços de IA',
     storage: 'Armazenamento das gravações',
-    privacy: 'Privacidade',
+    privacy: 'Privacidade e segurança',
     agentAccess: 'MCP / CLI',
     dataExport: 'Exportar',
     other: 'Outros',

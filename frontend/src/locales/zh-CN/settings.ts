@@ -2,10 +2,10 @@ export default {
   title: '设置',
   nav: {
     general: '通用与外观',
-    recording: '隐私',
+    recording: '隐私安全',
     providers: 'AI 服务',
     storage: '录制存储',
-    privacy: '隐私',
+    privacy: '隐私安全',
     agentAccess: 'MCP / CLI',
     dataExport: '导出',
     other: '其他',

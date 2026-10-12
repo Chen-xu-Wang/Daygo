@@ -2,10 +2,10 @@ export default {
   title: '設定',
   nav: {
     general: '一般と外観',
-    recording: 'プライバシー',
+    recording: 'プライバシーとセキュリティ',
     providers: 'AI サービス',
     storage: '記録の保存',
-    privacy: 'プライバシー',
+    privacy: 'プライバシーとセキュリティ',
     agentAccess: 'MCP / CLI',
     dataExport: 'エクスポート',
     other: 'その他',

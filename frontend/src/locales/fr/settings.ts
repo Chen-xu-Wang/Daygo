@@ -2,10 +2,10 @@ export default {
   title: 'Réglages',
   nav: {
     general: 'Général et apparence',
-    recording: 'Confidentialité',
+    recording: 'Confidentialité et sécurité',
     providers: 'Services d’IA',
     storage: 'Stockage des enregistrements',
-    privacy: 'Confidentialité',
+    privacy: 'Confidentialité et sécurité',
     agentAccess: 'MCP / CLI',
     dataExport: 'Export',
     other: 'Autre',

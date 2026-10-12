@@ -2,10 +2,10 @@ export default {
   title: 'Einstellungen',
   nav: {
     general: 'Allgemein & Erscheinungsbild',
-    recording: 'Privatsphäre',
+    recording: 'Datenschutz & Sicherheit',
     providers: 'KI-Dienste',
     storage: 'Aufzeichnungsspeicher',
-    privacy: 'Privatsphäre',
+    privacy: 'Datenschutz & Sicherheit',
     agentAccess: 'MCP / CLI',
     dataExport: 'Datenexport',
     other: 'Sonstiges',

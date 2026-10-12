@@ -122,6 +122,15 @@ db-core 未就绪可推进纯设置和 wrapper fixture；G-host 不阻止维护�
 
 ## 验证记录
 
+2026-10-12（`test`，基于 `6a1e5bf` 的工作树，macOS arm64）：设置导航中的「隐私」改为
+「隐私安全」，同步九语言的 `settings.nav.recording` 与保留的 `settings.nav.privacy` 文案。
+输入为既有设置分区，期望是简体中文导航显示「隐私安全」、其它语言显示对应本地化名称；
+源文案与实际导航引用已核对。完整 `./scripts/gate.sh` 通过，前端 267 项测试、typecheck / build、
+Go 测试 / 构建 / vet、三平台无 cgo 核心交叉构建与文档检查通过，`gofmt -l` 无输出；Windows
+安装器夹具 6 项通过、10 项需 Windows 主机而跳过。真实 Wails 窗口及语言偏好重启读回未复验；
+本次仅调整标签，属于 preferences 的 i18n 增量，不扩大 G-host / G-native 验收范围。
+回退：撤销本次提交，无设置键、路由或数据迁移。
+
 2026-10-07（`test`，基于 `0abca1b` 的工作树，macOS arm64）：删除 `api/dto.ts` 手写字段
 副本，改为生成模型的数据字段派生；动态时间线 / daily / weekly / plan 桥签名由生成函数
 派生，所有 API 的 `as unknown as` / `as never` 响应与输入逃逸已清除。wrapper 校验主题、
