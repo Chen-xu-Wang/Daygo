@@ -259,7 +259,7 @@ export default {
     error: {
       required: 'Erforderlich',
       invalidUrl: 'Gib eine vollständige URL beginnend mit http:// oder https:// ein',
-      range: 'Gib eine ganze Zahl von 0 bis 20 ein',
+      range: 'Gib eine ganze Zahl von 0 bis {max} ein',
       tooLong: 'Darf höchstens 512 Zeichen lang sein',
       invalidChars: 'Nur druckbare ASCII-Zeichen erlaubt',
     },

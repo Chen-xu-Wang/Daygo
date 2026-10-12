@@ -259,7 +259,7 @@ export default {
     error: {
       required: 'Champ obligatoire',
       invalidUrl: 'Saisissez une URL complète commençant par http:// ou https://',
-      range: 'Saisissez un nombre entier de 0 à 20',
+      range: 'Saisissez un nombre entier de 0 à {max}',
       tooLong: 'Doit contenir au plus 512 caractères',
       invalidChars: 'Seuls les caractères ASCII imprimables sont autorisés',
     },

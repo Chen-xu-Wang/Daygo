@@ -384,3 +384,7 @@ providers 协作，在策略 / UI 接入前统一，见 09 §9.8。
 - **Go 与存储（2026-09-10—20）**：`go test ./internal/ai/... ./internal/app/...`、`go vet`、`CGO_ENABLED=0 go build ./...` 及匿名 TLS 夹具覆盖三协议、连接探针、重试 / 回退、错误脱敏、路由与多模型迁移。macOS 钥匙串有一次真实 smoke；Windows 与 Linux 适配器已落盘。
 - **前端**：typecheck、构建和匿名配置交互覆盖 Provider 表单、模型列表、逐模型连接测试与有序回退链。
 - **真实闭环**：真实 Provider 网络、Wails 重启与升级身份由用户于 2026-09-22 确认验收，未附逐项运行记录。密钥不进入绑定、日志或 localStorage 的约束仍适用。
+- **2026-10-12（`test`）单次最多图片数修正**：上限在 ecee187 已降为 5（`ai.MaxImages`），但输入框
+  `max="20"` 与九语言报错「0 到 20」未同步，输入 10 时提示自相矛盾。现以 `stores/providers.ts` 的 `MAX_PROVIDER_IMAGES`
+  （= 5）为前端唯一来源，校验 `maxImagesError`、输入框上限与报错 `{max}` 占位共用；夹具 `frontend/tests/providerMaxImages.test.ts`
+  覆盖 0 / 1 / 5 通过、6 / 10 / 20 / 负数 / 小数 / NaN 拒绝。前端 typecheck、unit、build 通过；真实 Wails 表单未单独复验。

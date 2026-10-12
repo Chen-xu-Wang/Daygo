@@ -259,7 +259,7 @@ export default {
     error: {
       required: '必須です',
       invalidUrl: 'http:// または https:// で始まる完全な URL を入力してください',
-      range: '0 から 20 までの整数を入力してください',
+      range: '0 から {max} までの整数を入力してください',
       tooLong: '512 文字以内で入力してください',
       invalidChars: '印刷可能な ASCII 文字のみ使用できます',
     },

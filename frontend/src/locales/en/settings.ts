@@ -259,7 +259,7 @@ export default {
     error: {
       required: 'Required',
       invalidUrl: 'Enter a full URL starting with http:// or https://',
-      range: 'Enter a whole number from 0 to 20',
+      range: 'Enter a whole number from 0 to {max}',
       tooLong: 'Must be at most 512 characters',
       invalidChars: 'Only printable ASCII characters are allowed',
     },

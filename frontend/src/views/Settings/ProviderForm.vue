@@ -17,6 +17,7 @@ import {
   DEFAULT_ENDPOINTS,
   draftOf,
   emptyDraft,
+  MAX_PROVIDER_IMAGES,
   MAX_PROVIDER_MODELS,
   useProvidersStore,
   type ProviderDraft,
@@ -161,7 +162,7 @@ function protocolLabel(protocol: ProviderProtocol): string {
 
 function errorText(field: ProviderField): string {
   const code = errors.value[field]
-  return code === undefined ? '' : t(`settings.providers.error.${code}`)
+  return code === undefined ? '' : t(`settings.providers.error.${code}`, { max: MAX_PROVIDER_IMAGES })
 }
 
 onMounted(() => nameInput.value?.focus())
@@ -349,7 +350,7 @@ function applyUserAgentPreset(key: string): void {
           class="dg-input"
           type="number"
           min="0"
-          max="20"
+          :max="MAX_PROVIDER_IMAGES"
           step="1"
           :aria-invalid="errors.maxImages ? 'true' : undefined"
         />

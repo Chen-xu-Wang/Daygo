@@ -259,7 +259,7 @@ export default {
     error: {
       required: '不能是空的',
       invalidUrl: '請輸入以 http:// 或 https:// 開頭的完整網址',
-      range: '請輸入 0 到 20 之間的整數',
+      range: '請輸入 0 到 {max} 之間的整數',
       tooLong: '不能超過 512 個字元',
       invalidChars: '只能包含可列印的 ASCII 字元',
     },

@@ -259,7 +259,7 @@ export default {
     error: {
       required: '필수 항목입니다',
       invalidUrl: 'http:// 또는 https://로 시작하는 전체 주소를 입력하세요',
-      range: '0에서 20 사이의 정수를 입력하세요',
+      range: '0에서 {max} 사이의 정수를 입력하세요',
       tooLong: '512자 이하여야 합니다',
       invalidChars: '인쇄 가능한 ASCII 문자만 사용할 수 있습니다',
     },

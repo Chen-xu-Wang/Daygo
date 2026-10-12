@@ -259,7 +259,7 @@ export default {
     error: {
       required: '不能为空',
       invalidUrl: '请输入以 http:// 或 https:// 开头的完整地址',
-      range: '请输入 0 到 20 之间的整数',
+      range: '请输入 0 到 {max} 之间的整数',
       tooLong: '不能超过 512 个字符',
       invalidChars: '只能包含可打印的 ASCII 字符',
     },

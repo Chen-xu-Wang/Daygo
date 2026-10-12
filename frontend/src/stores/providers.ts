@@ -37,6 +37,16 @@ export type ProviderErrors = Partial<Record<ProviderField, ProviderFieldError>>
 /** The most models one provider may carry; mirrors the backend cap. */
 export const MAX_PROVIDER_MODELS = 20
 
+/**
+ * Per-request image cap a provider may set; mirrors Go's ai.MaxImages, which
+ * the backend enforces. 0 means that default, so a value only ever lowers it.
+ */
+export const MAX_PROVIDER_IMAGES = 5
+
+export function maxImagesError(value: number): ProviderFieldError | null {
+  return Number.isInteger(value) && value >= 0 && value <= MAX_PROVIDER_IMAGES ? null : 'range'
+}
+
 /** The User-Agent override length cap; mirrors the backend's maxUserAgentLength. */
 export const MAX_USER_AGENT_LENGTH = 512
 
@@ -140,9 +150,8 @@ function validate(draft: ProviderDraft): { ok: true } | { ok: false; errors: Pro
     errors.endpoint = 'invalidUrl'
   }
 
-  if (!Number.isInteger(draft.maxImages) || draft.maxImages < 0 || draft.maxImages > 5) {
-    errors.maxImages = 'range'
-  }
+  const imagesError = maxImagesError(draft.maxImages)
+  if (imagesError !== null) errors.maxImages = imagesError
 
   const uaError = userAgentError(draft.userAgent)
   if (uaError !== null) errors.userAgent = uaError
