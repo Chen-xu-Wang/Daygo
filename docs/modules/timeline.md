@@ -370,3 +370,6 @@ fake 能证明确定性逻辑，不能证明 LLM 文本一致、真实截图或�
   的回顾条统一为 `styles/base.css` 的 `.dg-meter`（14px 轨道 + 细描边与内阴影，8px 胶囊填充，各填充投出同色阴影，
   token `--dg-meter-track` / `--dg-meter-track-shadow`）；回顾的「中性」色由 `#e7e4ec` 改为 `#bcb8c4`，否则在浅色轨道上
   不可见。饼图去掉体积 / 高光叠层，扇区改为纯色并投出同色阴影。前端 typecheck、unit、build 通过，外观由用户人工检查。
+- **2026-10-12（`test`）饼图阴影修正**：上一条中扇区的 CSS `filter: drop-shadow()` 在 macOS WKWebView 中不绘制
+  （WebKit 对 SVG 子元素的 CSS 滤镜支持不可靠），用户报告饼图无阴影；底盘、扇区与中心圆盘的阴影改为 SVG
+  `<filter>`（扇区组用 feGaussianBlur + feOffset 取自身颜色作同色阴影）。前端 typecheck、build 通过，外观由用户人工检查。

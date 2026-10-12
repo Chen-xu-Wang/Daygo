@@ -223,6 +223,30 @@ const reviewMinutesTotal = computed(() =>
   >
     <svg viewBox="0 0 205 205" aria-hidden="true">
       <defs>
+        <!-- Shadows are SVG filters, not CSS filter: WebKit (the macOS
+             WKWebView) does not reliably paint CSS filters on SVG children,
+             so drop-shadow() on these elements rendered nothing. -->
+        <!-- Ambient shadow under the grey base. -->
+        <filter id="donut-base-shadow" x="-30%" y="-30%" width="160%" height="170%">
+          <feDropShadow class="donut-flood--base" dx="0" dy="6" stdDeviation="8" />
+        </filter>
+        <!-- Each wedge casts a shadow in its own colour, like the meter
+             capsules: the blurred, offset wedges themselves, faded. -->
+        <filter id="donut-sector-shadow" x="-20%" y="-20%" width="140%" height="145%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="blur" />
+          <feOffset in="blur" dy="2" result="offset" />
+          <feComponentTransfer in="offset" result="shadow">
+            <feFuncA type="linear" slope="0.6" />
+          </feComponentTransfer>
+          <feMerge>
+            <feMergeNode in="shadow" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <!-- Lift for the white center disk. -->
+        <filter id="donut-disk-shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow class="donut-flood--disk" dx="0" dy="1" stdDeviation="2" />
+        </filter>
         <!-- Soft contact shadow hugging the inner edge of the ring. -->
         <radialGradient id="donut-inner-shade" cx="50%" cy="50%" r="50%">
           <stop offset="70%" stop-color="rgba(20, 22, 40, 0)" />
@@ -231,10 +255,10 @@ const reviewMinutesTotal = computed(() =>
         </radialGradient>
       </defs>
       <!-- Grey base circle with the soft ambient shadow. -->
-      <circle class="donut__base" cx="102.5" cy="102.5" r="102.5" />
+      <circle class="donut__base" cx="102.5" cy="102.5" r="102.5" filter="url(#donut-base-shadow)" />
       <!-- Category sectors: filled annular wedges with angular gaps and
            round-cornered edges (the round-join stroke is the same colour). -->
-      <g class="donut__sectors">
+      <g class="donut__sectors" filter="url(#donut-sector-shadow)">
         <path
           v-for="(sector, index) in donutSectors"
           :key="index"
@@ -246,7 +270,6 @@ const reviewMinutesTotal = computed(() =>
           :d="sector.path"
           :fill="sector.color"
           :stroke="sector.color"
-          :style="{ '--meter-fill': sector.color }"
           stroke-width="6"
           stroke-linejoin="round"
           @mouseenter="activeSlice = index"
@@ -255,7 +278,7 @@ const reviewMinutesTotal = computed(() =>
       </g>
       <!-- Contact shadow at the hole, then the raised white center disk. -->
       <circle cx="102.5" cy="102.5" r="102.5" fill="url(#donut-inner-shade)" />
-      <circle class="donut__center-disk" cx="102.5" cy="102.5" r="73" />
+      <circle class="donut__center-disk" cx="102.5" cy="102.5" r="73" filter="url(#donut-disk-shadow)" />
     </svg>
     <div class="donut__center">
       <span class="donut__total-label">{{ t('timeline.overview.total') }}</span>
@@ -441,19 +464,16 @@ const reviewMinutesTotal = computed(() =>
   animation: donut-rise var(--dg-motion-slow) var(--dg-ease-glide) both;
 }
 
-.donut__base {
-  fill: #ececf1;
-  filter: drop-shadow(0 6px 16px rgba(45, 50, 80, 0.2));
-}
+.donut__base { fill: #ececf1; }
+:root[data-dg-appearance='dark'] .donut__base { fill: #24242a; }
 
-:root[data-dg-appearance='dark'] .donut__base {
-  fill: #24242a;
-  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.5));
-}
+.donut-flood--base { flood-color: rgb(45, 50, 80); flood-opacity: 0.2; }
+.donut-flood--disk { flood-color: rgb(45, 50, 80); flood-opacity: 0.16; }
+:root[data-dg-appearance='dark'] .donut-flood--base { flood-color: #000000; flood-opacity: 0.5; }
+:root[data-dg-appearance='dark'] .donut-flood--disk { flood-color: #000000; flood-opacity: 0.45; }
 
 .donut__sector {
-  /* Flat colour with a shadow in its own hue, like the meter capsules. */
-  filter: drop-shadow(0 1.5px 2.5px color-mix(in srgb, var(--meter-fill) 50%, transparent));
+  /* Flat colour; the group's SVG filter adds a shadow in each wedge's hue. */
   /* Pin the hover scale to the ring centre. Without an explicit box WebKit
      pivots around each wedge's own bounding box, so the active sector drifts
      off the ring instead of lifting in place. */
@@ -480,11 +500,6 @@ const reviewMinutesTotal = computed(() =>
 
 .donut__center-disk {
   fill: var(--dg-surface, #ffffff);
-  filter: drop-shadow(0 1px 3px rgba(45, 50, 80, 0.14));
-}
-
-:root[data-dg-appearance='dark'] .donut__center-disk {
-  filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.45));
 }
 
 @keyframes donut-rise {
