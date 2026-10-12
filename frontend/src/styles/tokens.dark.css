@@ -176,7 +176,8 @@
   --dg-wk-tooltip: rgba(39, 42, 60, 0.96);
   /* Dayflow's warm sankey washes read as grey haze on dark; keep a trace. */
   --dg-wk-sankey-underlay: 0.28;
-  --dg-wk-donut-shadow: rgba(0, 0, 0, 0.35);
+  --dg-wk-donut-shadow: rgba(0, 0, 0, 0.6);
+  --dg-wk-donut-contact: rgba(0, 0, 0, 0.45);
 
   --dg-weekly-focus: #59a6ff;
   --dg-weekly-ring-track: rgba(255, 255, 255, 0.2);

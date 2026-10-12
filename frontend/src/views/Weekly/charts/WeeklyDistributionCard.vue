@@ -73,7 +73,29 @@ function share(value: number): string {
     <div class="dist">
       <div class="dist__chart" role="img" :aria-label="t('weekly.charts.distribution.aria')">
         <svg :viewBox="`0 0 ${SIZE} ${SIZE}`" aria-hidden="true">
-          <circle class="dist__disc" :cx="CENTER" :cy="CENTER" :r="OUTER + 2" />
+          <defs>
+            <!-- An SVG filter, not CSS filter: WebKit (the macOS WKWebView)
+                 does not paint CSS drop-shadow() on SVG children, so the disc
+                 had a shadow on Windows (Chromium) and none on macOS. -->
+            <!-- Two layers: a wide ambient shadow that lifts the disc off the
+                 card, and a tight contact shadow that keeps its edge crisp. -->
+            <filter id="wk-dist-disc-shadow" x="-30%" y="-30%" width="160%" height="170%">
+              <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="ambientBlur" />
+              <feOffset in="ambientBlur" dy="5" result="ambientOffset" />
+              <feFlood class="dist__flood--ambient" result="ambientColor" />
+              <feComposite in="ambientColor" in2="ambientOffset" operator="in" result="ambient" />
+              <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="contactBlur" />
+              <feOffset in="contactBlur" dy="1" result="contactOffset" />
+              <feFlood class="dist__flood--contact" result="contactColor" />
+              <feComposite in="contactColor" in2="contactOffset" operator="in" result="contact" />
+              <feMerge>
+                <feMergeNode in="ambient" />
+                <feMergeNode in="contact" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <circle class="dist__disc" :cx="CENTER" :cy="CENTER" :r="OUTER + 2" filter="url(#wk-dist-disc-shadow)" />
           <path
             v-for="sector in sectors"
             :key="sector.name"
@@ -144,8 +166,10 @@ function share(value: number): string {
 
 .dist__disc {
   fill: var(--dg-wk-solid);
-  filter: drop-shadow(0 0 5px var(--dg-wk-donut-shadow));
 }
+
+.dist__flood--ambient { flood-color: var(--dg-wk-donut-shadow); }
+.dist__flood--contact { flood-color: var(--dg-wk-donut-contact); }
 
 .dist__sector {
   cursor: pointer;

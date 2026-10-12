@@ -250,7 +250,8 @@
   --dg-wk-tooltip: rgba(255, 255, 255, 0.96);
   /* Dayflow's warm sankey washes are tuned for this light card. */
   --dg-wk-sankey-underlay: 1;
-  --dg-wk-donut-shadow: rgba(99, 71, 56, 0.35);
+  --dg-wk-donut-shadow: rgba(99, 71, 56, 0.42);
+  --dg-wk-donut-contact: rgba(99, 71, 56, 0.24);
 
   /* motion */
   --dg-motion-fast: 100ms;

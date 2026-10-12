@@ -215,3 +215,7 @@ Chrome headless 匿名 Local 时区夹具验证日报 / 周报的折线和柱状
 真实 Wails 鼠标交互未单独验收；既有真实验收不覆盖本次增量。
 2026-10-12（`test`）：token 用量卡片的图表类型选择改用公共 `DgSelect`（原生 `<select>` 在
 WebView2 下显示系统样式）；该卡片日报页共用。前端 typecheck、build 通过，外观由用户人工检查。
+2026-10-12（`test`）：分类分布饼图底盘的阴影原为 SVG `<circle>` 上的 CSS `filter: drop-shadow()`，Windows（WebView2 / Chromium）
+可见而 macOS（WKWebView / WebKit）不绘制；改为 SVG `<filter>`，并按用户反馈加强为两层（环境阴影 blur 7 / 下移 5，
+贴边阴影 blur 1.5 / 下移 1，新增 token `--dg-wk-donut-contact`）。前端 typecheck、build 通过，外观由用户人工检查；
+Windows 上的新效果未复验。
