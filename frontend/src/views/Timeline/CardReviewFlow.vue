@@ -81,7 +81,7 @@ const finished = computed(() => total > 0 && index.value >= total)
  */
 const verdictSegments = computed(() => [
   { label: t('timeline.review.distraction'), minutes: distractionMinutes.value, color: 'var(--dg-danger)' },
-  { label: t('timeline.review.neutral'), minutes: neutralMinutes.value, color: '#e7e4ec' },
+  { label: t('timeline.review.neutral'), minutes: neutralMinutes.value, color: '#bcb8c4' },
   { label: t('timeline.review.focus'), minutes: focusMinutes.value, color: '#35c3a2' },
 ])
 
@@ -581,11 +581,12 @@ function totalsSnapshot(): ReviewTotals {
       <div v-else-if="finished" class="review__card review__done">
         <h2>{{ t('timeline.review.doneTitle') }}</h2>
         <p class="review__done-body">{{ t('timeline.review.doneBody') }}</p>
-        <div class="review__done-bar" aria-hidden="true">
+        <div class="review__done-bar dg-meter" aria-hidden="true">
           <span
             v-for="segment in verdictSegments.filter((entry) => entry.minutes > 0)"
             :key="segment.label"
-            :style="{ flexGrow: segment.minutes, '--seg': segment.color }"
+            class="dg-meter__fill"
+            :style="{ flexGrow: segment.minutes, '--meter-fill': segment.color }"
           ></span>
         </div>
         <div class="review__done-legend">
@@ -880,26 +881,17 @@ function totalsSnapshot(): ReviewTotals {
   max-width: 46ch;
 }
 
-/* Segmented verdict bar: separate rounded blocks with a gap, widths
-   proportional to judged minutes. */
+/* Verdict split on the shared meter (base.css .dg-meter), same as the
+   inspector's review tile: one capsule per judged verdict, widths
+   proportional to minutes. */
 .review__done-bar {
-  display: flex;
-  gap: 8px;
   width: min(560px, 100%);
-  height: 44px;
   margin: 18px 0 0;
 }
 
-.review__done-bar span {
-  flex-basis: 56px;
-  border-radius: 12px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--seg) 72%, #ffffff),
-    var(--seg) 55%,
-    color-mix(in srgb, var(--seg) 86%, #000000)
-  );
-  box-shadow: 0 6px 14px rgba(45, 50, 80, 0.16);
+.review__done-bar .dg-meter__fill {
+  flex: 1 1 0;
+  min-width: 8px;
 }
 
 .review__done-legend {

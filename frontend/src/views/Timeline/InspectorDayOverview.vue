@@ -15,7 +15,7 @@ import PlanPanel from './PlanPanel.vue'
 import type { ReviewTotals } from './review'
 import { FALLBACK_CATEGORY_COLOR, safeCategoryColor } from './layout'
 import { failurePresentation } from './failurePresentation'
-import { buildDonutSectors, fullRingPath, type DonutSector, type DonutSlice } from './donut'
+import { buildDonutSectors, type DonutSector, type DonutSlice } from './donut'
 
 /*
  * The inspector's no-selection pane, laid out like the Dayflow reference:
@@ -177,9 +177,6 @@ const donutSectors = computed<DonutSector[]>(() =>
   buildDonutSectors(donutSlices.value),
 )
 
-// Annulus that the volume/gloss overlays paint over — matches the sectors'
-// outer 102.5 / inner 76.875 (0.75) band so the sheen never bleeds into the hole.
-const OVERLAY_RING = fullRingPath(102.5, 102.5, 102.5, 76.875)
 
 // Sectors and legend chips share the donutSlices order 1:1 (every slice has
 // positive minutes), so a single hovered index links the two: the matching
@@ -193,7 +190,8 @@ const activeSlice = ref<number | null>(null)
  */
 const VERDICT_COLORS = {
   distraction: 'var(--dg-danger)',
-  neutral: '#e7e4ec',
+  // Mid grey: the old #e7e4ec vanished into the meter's light track.
+  neutral: '#bcb8c4',
   focus: '#35c3a2',
 } as const
 
@@ -225,18 +223,6 @@ const reviewMinutesTotal = computed(() =>
   >
     <svg viewBox="0 0 205 205" aria-hidden="true">
       <defs>
-        <!-- Top-lit volume: a white crown fading to a shaded base, blended
-             over the wedges so any hue reads as a rounded band. -->
-        <linearGradient id="donut-volume" x1="0" y1="0" x2="0" y2="1">
-          <stop class="donut-stop--crown" offset="0%" />
-          <stop class="donut-stop--fade" offset="52%" />
-          <stop class="donut-stop--base" offset="100%" />
-        </linearGradient>
-        <!-- Specular pool near the upper-left, matching the panel light. -->
-        <radialGradient id="donut-sheen" cx="34%" cy="26%" r="72%">
-          <stop class="donut-stop--sheen-in" offset="0%" />
-          <stop class="donut-stop--sheen-out" offset="60%" />
-        </radialGradient>
         <!-- Soft contact shadow hugging the inner edge of the ring. -->
         <radialGradient id="donut-inner-shade" cx="50%" cy="50%" r="50%">
           <stop offset="70%" stop-color="rgba(20, 22, 40, 0)" />
@@ -260,15 +246,13 @@ const reviewMinutesTotal = computed(() =>
           :d="sector.path"
           :fill="sector.color"
           :stroke="sector.color"
+          :style="{ '--meter-fill': sector.color }"
           stroke-width="6"
           stroke-linejoin="round"
           @mouseenter="activeSlice = index"
           @mouseleave="activeSlice = null"
         />
       </g>
-      <!-- Volume + specular gloss painted only over the ring band. -->
-      <path class="donut__volume" :d="OVERLAY_RING" fill="url(#donut-volume)" />
-      <path class="donut__sheen" :d="OVERLAY_RING" fill="url(#donut-sheen)" />
       <!-- Contact shadow at the hole, then the raised white center disk. -->
       <circle cx="102.5" cy="102.5" r="102.5" fill="url(#donut-inner-shade)" />
       <circle class="donut__center-disk" cx="102.5" cy="102.5" r="73" />
@@ -367,11 +351,12 @@ const reviewMinutesTotal = computed(() =>
     <template v-else>
       <!-- Same verdict split as the review flow's completion bar; only judged
            verdicts draw a block, widths proportional to minutes. -->
-      <div class="review-bar" aria-hidden="true">
+      <div class="review-bar dg-meter" aria-hidden="true">
         <span
           v-for="segment in reviewSegments.filter((entry) => entry.minutes > 0)"
           :key="segment.label"
-          :style="{ flexGrow: segment.minutes, '--seg': segment.color }"
+          class="dg-meter__fill"
+          :style="{ flexGrow: segment.minutes, '--meter-fill': segment.color }"
         ></span>
       </div>
       <div class="review-stats">
@@ -436,9 +421,9 @@ const reviewMinutesTotal = computed(() =>
 .inspector__heading .inspector__eyebrow { font-size: 13px; }
 
 
-/* Dayflow-lineage donut, given depth: a grey base with ambient shadow, tinted
-   wedges carrying a top-lit volume gradient and an upper-left specular pool,
-   a contact shadow at the hole and a raised white center disk. Hovering a
+/* Dayflow-lineage donut in the meter language: a grey base with ambient
+   shadow, flat wedges each casting a shadow in its own colour, a contact
+   shadow at the hole and a raised white center disk. Hovering a
    wedge or its legend chip lifts that slice and lets the others recede. */
 .donut {
   position: relative;
@@ -467,20 +452,19 @@ const reviewMinutesTotal = computed(() =>
 }
 
 .donut__sector {
-  fill-opacity: 0.86;
+  /* Flat colour with a shadow in its own hue, like the meter capsules. */
+  filter: drop-shadow(0 1.5px 2.5px color-mix(in srgb, var(--meter-fill) 50%, transparent));
   /* Pin the hover scale to the ring centre. Without an explicit box WebKit
      pivots around each wedge's own bounding box, so the active sector drifts
      off the ring instead of lifting in place. */
   transform-box: view-box;
   transform-origin: 102.5px 102.5px;
   transition:
-    fill-opacity var(--dg-motion-base) var(--dg-ease-out),
     opacity var(--dg-motion-base) var(--dg-ease-out),
     transform var(--dg-motion-base) var(--dg-ease-glide);
 }
 
 .donut__sector.is-active {
-  fill-opacity: 1;
   transform: scale(1.035);
 }
 
@@ -490,27 +474,8 @@ const reviewMinutesTotal = computed(() =>
   opacity: 0;
 }
 
-/* Volume + gloss overlays sit above the wedges but must not eat pointer
-   events aimed at them. soft-light keeps the wedge hue while shaping light. */
-.donut__volume,
-.donut__sheen {
-  pointer-events: none;
-  mix-blend-mode: soft-light;
-}
-
-.donut__sheen { mix-blend-mode: screen; opacity: 0.7; }
-
-:root[data-dg-appearance='dark'] .donut__sheen { opacity: 0.4; }
-
-.donut-stop--crown { stop-color: rgba(255, 255, 255, 0.6); }
-.donut-stop--fade { stop-color: rgba(255, 255, 255, 0); }
-.donut-stop--base { stop-color: rgba(10, 12, 26, 0.32); }
-.donut-stop--sheen-in { stop-color: rgba(255, 255, 255, 0.55); }
-.donut-stop--sheen-out { stop-color: rgba(255, 255, 255, 0); }
 .donut-stop--rim { stop-color: rgba(20, 22, 40, 0.16); }
 
-:root[data-dg-appearance='dark'] .donut-stop--crown { stop-color: rgba(255, 255, 255, 0.28); }
-:root[data-dg-appearance='dark'] .donut-stop--base { stop-color: rgba(0, 0, 0, 0.4); }
 :root[data-dg-appearance='dark'] .donut-stop--rim { stop-color: rgba(0, 0, 0, 0.34); }
 
 .donut__center-disk {
@@ -535,7 +500,7 @@ const reviewMinutesTotal = computed(() =>
 
 @media (prefers-reduced-motion: reduce) {
   .donut svg { animation: none; }
-  .donut__sector { transition: fill-opacity var(--dg-motion-base) var(--dg-ease-out); }
+  .donut__sector { transition: opacity var(--dg-motion-base) var(--dg-ease-out); }
   .donut__sector.is-active { transform: none; }
 }
 
@@ -625,26 +590,11 @@ const reviewMinutesTotal = computed(() =>
 }
 
 /* Review verdict split on a grey track. */
-.review-bar {
-  display: flex;
-  gap: 8px;
-  min-height: 40px;
-  padding: 5px;
-  border-radius: 12px;
-  background: var(--dg-track-fill);
-}
-
-.review-bar span {
-  flex-basis: 40px;
-  border-radius: 10px;
-  /* Cylindrical sheen: lighter crown, darker base, soft drop shadow. */
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--seg) 72%, #ffffff),
-    var(--seg) 55%,
-    color-mix(in srgb, var(--seg) 86%, #000000)
-  );
-  box-shadow: 0 6px 14px rgba(45, 50, 80, 0.16);
+/* The verdict split on the shared meter: one capsule per judged verdict,
+   widths proportional to minutes. */
+.review-bar .dg-meter__fill {
+  flex: 1 1 0;
+  min-width: 8px;
 }
 
 .review-stats {

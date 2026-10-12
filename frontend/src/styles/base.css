@@ -462,3 +462,29 @@ input[type='number']::-webkit-outer-spin-button {
     transform: none;
   }
 }
+
+/*
+ * Meter: one progress-bar language for the inspector (day goal, plan,
+ * review). A 14px track with a hairline and a faint inner shadow holds 8px
+ * capsules; each fill casts a soft shadow in its own colour (--meter-fill).
+ */
+.dg-meter {
+  position: relative;
+  display: flex;
+  gap: 2.5px;
+  height: 14px;
+  padding: 3px;
+  border-radius: 4px;
+  background: var(--dg-meter-track);
+  box-shadow: var(--dg-meter-track-shadow);
+}
+
+.dg-meter__fill {
+  flex: none;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--meter-fill);
+  box-shadow:
+    0 1px 3px color-mix(in srgb, var(--meter-fill) 45%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}

@@ -175,8 +175,12 @@ const errorText = computed(() => {
       </button>
     </header>
 
-    <div v-if="plan.blocks.length > 0" class="plan__progress" aria-hidden="true">
-      <span :style="{ transform: `scaleX(${progress})` }"></span>
+    <div v-if="plan.blocks.length > 0" class="plan__progress dg-meter" aria-hidden="true">
+      <span
+        v-if="progress > 0"
+        class="dg-meter__fill plan__progress-fill"
+        :style="{ width: `calc((100% - 6px) * ${progress})` }"
+      ></span>
     </div>
 
     <p v-if="!plan.available" class="inspector__tile-note">{{ t('timeline.plan.unavailable') }}</p>
@@ -283,21 +287,11 @@ const errorText = computed(() => {
 </template>
 
 <style scoped>
-.plan__progress {
-  height: 4px;
-  margin: -2px 0 10px;
-  overflow: hidden;
-  border-radius: 2px;
-  background: var(--dg-hover-fill);
-}
+.plan__progress { margin: -2px 0 12px; }
 
-.plan__progress span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--dg-plan-done);
-  transform-origin: left;
-  transition: transform var(--dg-motion-slow) var(--dg-ease-glide);
+.plan__progress-fill {
+  --meter-fill: var(--dg-plan-done);
+  transition: width var(--dg-motion-slow) var(--dg-ease-glide);
 }
 
 .plan__empty {
@@ -552,7 +546,7 @@ const errorText = computed(() => {
   .plan-item,
   .plan-item__check,
   .plan-item__actions,
-  .plan__progress span { transition: none; }
+  .plan__progress-fill { transition: none; }
   .plan-item.is-flash { animation: none; }
 }
 </style>

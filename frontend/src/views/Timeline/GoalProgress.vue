@@ -208,55 +208,65 @@ const budgetLeft = computed(() =>
 }
 
 /* ---- Tracks ---- */
+/* Tracks follow the shared .dg-meter language (base.css): 14px track with
+   an inner shadow, 8px capsules casting a shadow in their own colour. */
 .goal-track {
   position: relative;
   height: 14px;
-  border-radius: 3px;
-  background: var(--dg-hover-fill);
-  box-shadow: inset 0 0 0 0.5px var(--dg-goal-box-border);
+  border-radius: 4px;
+  background: var(--dg-meter-track);
+  box-shadow: var(--dg-meter-track-shadow);
   transition: box-shadow var(--dg-motion-base) ease;
 }
 
 .goal-row--focus.is-fulfilled .goal-track {
-  box-shadow: inset 0 0 0 0.5px rgba(145, 174, 255, 0.9), 0 0 6px rgba(98, 140, 255, 0.5);
+  box-shadow: var(--dg-meter-track-shadow), 0 0 0 0.5px rgba(145, 174, 255, 0.9), 0 0 6px rgba(98, 140, 255, 0.5);
 }
 
 .goal-track__segments {
   position: absolute;
-  inset: 3px 3px 3px 3px;
+  inset: 3px;
   display: flex;
   gap: 2.5px;
 }
 
-.goal-track__segment {
-  flex: none;
+.goal-track__segment,
+.goal-track__budget {
   height: 8px;
   border-radius: 999px;
-  background: var(--segment);
+  background: var(--meter-fill);
+  box-shadow:
+    0 1px 3px color-mix(in srgb, var(--meter-fill) 45%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.goal-track__segment {
+  --meter-fill: var(--segment);
+  flex: none;
   transition: width 820ms cubic-bezier(0.18, 0.88, 0.2, 1);
 }
 
 .goal-row--focus.is-fulfilled .goal-track__segment {
-  box-shadow: 0 0 8px color-mix(in srgb, var(--segment) 30%, transparent);
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--segment) 40%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
 .goal-track__budget {
+  --meter-fill: var(--dg-goal-distraction);
   position: absolute;
-  top: 4px;
+  top: 3px;
   right: 3px;
-  height: 6px;
-  border-radius: 6px;
-  background: var(--dg-goal-distraction);
   transition: width 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Inactive: a grey capsule resting in a grey track. */
+/* Inactive: a grey capsule resting in the track. */
 .goal-track__idle {
   position: absolute;
-  top: 4px;
+  top: 3px;
   left: 3px;
   width: 92%;
-  height: 6px;
+  height: 8px;
   border-radius: 999px;
   background: var(--dg-hover-fill-strong);
 }

@@ -366,3 +366,7 @@ fake 能证明确定性逻辑，不能证明 LLM 文本一致、真实截图或�
 - **存储与分析（2026-09-12—21）**：`go test ./internal/storage/ ./internal/analysis/ ./internal/app/`、`go vet`、`CGO_ENABLED=0 go build ./...` 及迁移夹具覆盖卡片事务改写、分类、批次重试、范围边界、单卡重写、appSites 回填和评分。具体算法与约束见 [03 §3.5](../03-data-model.md#35-时钟串派生) 和 [04 §4.3](../04-data-flow.md#43-分析流水线)。
 - **前端（2026-09-11—21）**：typecheck、单元测试与 build 覆盖日 / 周视图、编辑、重处理状态、图标、分类本地化和详情页审阅 / 评分；Vite 预览使用匿名夹具。评分迁移为 v18，`card_ratings` 仅保存 `up` / `down`，再次点击撤销；审阅和评分都不改写卡片。
 - **原生与闭环**：历史记录包括 macOS 真实像素及分段 smoke；真实 Provider、Wails 时间线与长期观察由用户于 2026-09-22 确认验收，未附逐项运行记录。搜索尚未实现，见 [09 §9.1](../09-roadmap.md#91-模块总表)。
+- **2026-10-12（`test`）检查器进度条统一**：当日目标的专注 / 分心条、今日计划完成条、「你的回顾」条与审阅完成页
+  的回顾条统一为 `styles/base.css` 的 `.dg-meter`（14px 轨道 + 细描边与内阴影，8px 胶囊填充，各填充投出同色阴影，
+  token `--dg-meter-track` / `--dg-meter-track-shadow`）；回顾的「中性」色由 `#e7e4ec` 改为 `#bcb8c4`，否则在浅色轨道上
+  不可见。饼图去掉体积 / 高光叠层，扇区改为纯色并投出同色阴影。前端 typecheck、unit、build 通过，外观由用户人工检查。
